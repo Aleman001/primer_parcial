@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <title>::.. Libro ..::</title>
+</head>
+<body>
+    <div class="container-fluid" id="app">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">::.. Libro ..::</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                    <div class="navbar-nav">
+                        <a class="nav-link" @click="abrirCerrarFormulario('docente')" href="#">Docentes</a>
+                        <a class="nav-link" @click="abrirCerrarFormulario('alumno')" href="#">Alumnos</a>
+                        <a class="nav-link" @click="abrirCerrarFormulario('materia')" href="#">Materia</a>
+                        <a class="nav-link" @click="abrirCerrarFormulario('matricula')" href="#">Matricula</a>
+                        <a class="nav-link" @click="abrirCerrarFormulario('inscripcion')" href="#">Inscripcion</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const {
+            createApp
+        } = Vue;
+        var db;
+        createApp({
+            data(){
+                return {
+                    forms:{
+                        autor:{ mostrar:false, },
+                        codigo:{ mostrar:false, },
+                        nombre:{ mostrar:false, },
+                        pais:{ mostrar:false, },
+                        telefono:{ mostrar:false, },
+                    }
+                }
+            },
+            methods: {
+                abrirCerrarFormulario(form){
+                    this.forms[form] = !this.forms[form];
+                    console.log(form, this.forms[form]);
+                },
+                abrirBD() {
+                    let indexDB = indexedDB.open('db_libro', 1);
+                    indexDB.onupgradeneeded = e => {
+                        let req = e.target.result,
+                            tbldocentes = req.createObjectStore('tblautor', {
+                                keyPath: 'idAutor'
+                            }),
+                            tblalumnos = req.createObjectStore('tblcodigo', {
+                                keyPath: 'idCodigo'
+                            }),
+                            tblmaterias = req.createObjectStore('tblnombre', {
+                                keyPath: 'idNombre'
+                            });
+
+                        tbldocentes.createIndex('idAutor', 'idAutor', {
+                            unique: true
+                        });
+                        tbldocentes.createIndex('codigo', 'codigo', {
+                            unique: true
+                        });
+                    };
+                    indexDB.onsuccess = e => {
+                        db = e.target.result;
+                        this.listarDocentes();
+                    };
+                    indexDB.onerror = e => {
+                        console.error('ERROR al crear, abrir la BD', e);
+                    };
+                },
+                abrirStore(store, modo) {
+                    let ltx = db.transaction(store, modo);
+                    return ltx.objectStore(store);
+                }
+            },
+            created() {
+                this.abrirBD();
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
